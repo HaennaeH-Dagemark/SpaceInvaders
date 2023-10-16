@@ -19,13 +19,13 @@ class Game < Gosu::Window
         @difficulty = 1
         @font = Gosu::Font.new(100, {name: "comic", italic: true, underline: true})
         new_wave()
-        @player = Ship.new(1920/2-100, 1080-120)
+        @player = Ship.new(1920/2-100, 1080-120, self)
     end
 
     def new_wave
         pos = {}
         for x in 1..12 do
-            pos[0] = 110 * x - 111
+            pos[0] = 110 * x
             if @difficulty > 1
                 pos[1] = 2 + 100 * (x/12).to_i
             end 
@@ -47,7 +47,7 @@ class Game < Gosu::Window
                 for bullet in @bullets
                     bullet_coords = bullet.coords
                     if enemy_coords[:y] + 100 >= bullet_coords[:y]
-                        if bullet_coords[:x] > enemy_coords[:x] - 50 && bullet_coords[:x] < enemy_coords[:x] + 50
+                        if bullet_coords[:x] > enemy_coords[:x] && bullet_coords[:x] < enemy_coords[:x] + 100
                             enemy.type = "dead"
                             bullet.type = "dead"
                             print("Target shot.\nBullet coords: #{bullet_coords[0]},#{bullet_coords[1]}\nEnemy coords: #{enemy_coords[0]},#{enemy_coords[1]}")
@@ -56,14 +56,19 @@ class Game < Gosu::Window
                 end
                 if enemy.type != "dead"
                     enemy.local_update()
-                    if enemy_coords[0] > 1820
-                        enemy.dir = -1
-                        enemy.coords[0] -= 100
-                        enemy.coords[1] += 100
-                    elsif enemy_coords[0] < 0
-                        enemy.dir = 1
-                        enemy.coords[0] += 100
-                        enemy.coords[1] += 100
+                    if enemy_coords[:x] + 100 > 1820
+                        for enemy in @enemies
+                            enemy.dir = -1
+                            enemy.coords[:y] += 100
+                            enemy.coords[:x] -= 100
+                        end
+                    elsif enemy_coords[:x] - 100 < 0
+                        enemy.coords[:x] += 200
+                        for enemy in @enemies
+                            enemy.dir = 1
+                            enemy.coords[:y] += 100
+                            enemy.coords[:x] -= 100
+                        end
                     end
                     if @cooldowns[1] == 0
                         enemy.movement_oppertunity = true
@@ -71,7 +76,7 @@ class Game < Gosu::Window
                 end
             end
             if @cooldowns[1] == 0
-                @cooldowns[1] = 5
+                @cooldowns[1] = 1
             end
             @enemies.delete_if {|enemy| enemy.type == "dead"}   
             @bullets.delete_if {|enemy| enemy.type == "dead"}
@@ -83,6 +88,12 @@ class Game < Gosu::Window
                 elsif @cooldowns[x] < 0 
                     @cooldowns[x] = 0
                 end
+            end
+            if @player.cooldown
+                delta = Time.now - @time_comparison
+                @player.cooldown -= delta.to_f
+            elsif @player.cooldown < 0 
+                @player.cooldown = 0
             end
             @time_comparison = Time.now
 
@@ -107,6 +118,10 @@ class Game < Gosu::Window
         end
     end
 
+    def new_bullet(x)
+        @bullets << Bullet.new(x, @bulletType)
+    end
+
     def draw
         if @state == 1
             @player.draw()
@@ -117,9 +132,9 @@ class Game < Gosu::Window
                 enemy.draw
             end
         elsif @state == 0
-            @font.draw("Press Space to Start", 1000, 500, 1, 1.0, 1.0, Gosu::Color::WHITE)
+            @font.draw("Press Space to Start", 0, 0, 1, 1.0, 1.0, Gosu::Color::WHITE)
         elsif @state == 2
-            @font.draw("Congrats, you won! Press Space to go to the next level", 1000, 500, 1, 1.0, 1.0, Gosu::Color::WHITE)
+            @font.draw("Congrats, you won! Press Space to go to the next level", 0, 0, 1, 0.6, 0.6, Gosu::Color::WHITE)
         end
     end
 end

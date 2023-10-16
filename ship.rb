@@ -1,10 +1,13 @@
-class Ship
-    attr_accessor :coords
 
-    def initialize(x, y)
+class Ship
+    attr_accessor :coords, :cooldown
+
+    def initialize(x, y, game)
         @coords = {x: x, y: y}
         @image = Gosu::Image.new("gfx/ship1.png")
         @type = "default"
+        @cooldown = 0
+        @game = game
     end
 
     def middle
@@ -23,11 +26,11 @@ class Ship
             end
         end
         if Gosu::button_down?(Gosu::KbSpace)
-            if @cooldowns[0] == 0
-                @bullets << Bullet.new(@coords[0], @bulletType)
-                @cooldowns[0] = 0.5
+            if @cooldown < 0
+                @game.new_bullet(@coords[:x])
+                @cooldown = 0.5
             else
-                puts("Cooldown not done, wait #{@cooldowns[0]}")
+                puts("Cooldown not done, wait #{@cooldown}")
             end
         end
     end

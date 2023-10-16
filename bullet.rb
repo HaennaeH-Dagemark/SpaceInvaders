@@ -19,8 +19,8 @@ class Bullet
     end
 
     def local_update()
-        @coords[1] -= 10
-        if @coords[1] - 50 <= 0
+        @coords[:y] -= 10
+        if @coords[:y] - 50 <= 0
             @type = "dead"
         end
     end

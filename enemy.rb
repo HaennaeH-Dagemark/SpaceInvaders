@@ -12,7 +12,7 @@ class Enemy
 
     def local_update()
         if @movement_oppertunity == true
-            @coords[0] += 100 * @dir
+            @coords[:x] += 100 * @dir
             @movement_oppertunity = false
         end
         if @type == "dead"
